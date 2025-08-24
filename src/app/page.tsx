@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description:
     'We strive to raise the educational scientific tide to become a sun that shines with knowledge and wisdom, leaving a mark and a trace.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logo.png',
     apple: '/logo.png',
   },
 };

@@ -192,7 +192,9 @@ export default function Header() {
 
               {/* Mobile Register Button */}
               <Button
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                }}
                 className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg cursor-pointer mt-4 w-full transition-all duration-300 hover:scale-105 shadow-lg"
                 style={{
                   animationDelay: `${links.length * 50}ms`,
