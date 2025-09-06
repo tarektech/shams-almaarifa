@@ -12,6 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -24,6 +31,9 @@ export function SignUpForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState<'admin' | 'student'>('student');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -42,18 +52,77 @@ export function SignUpForm({
       return;
     }
 
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('First name and last name are required');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Starting signup process with data:', {
+        email,
+        role,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/${
+            role === 'admin' ? 'admin' : 'student'
+          }`,
+          data: {
+            role: role,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          },
         },
       });
-      if (error) throw error;
-      router.push('/auth/sign-up-success');
+
+      if (error) {
+        console.error('Supabase auth error:', error);
+        throw error;
+      }
+
+      // Log success for debugging
+      console.log('User created successfully:', data.user?.id);
+      console.log(
+        'User confirmation required:',
+        !data.user?.email_confirmed_at
+      );
+
+      // Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        setError(
+          'تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني لتأكيد الحساب.'
+        );
+        return;
+      }
+
+      router.push('/sign-up-success');
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Signup error:', error);
+
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Database error')) {
+          setError(
+            'خطأ في قاعدة البيانات. يرجى المحاولة مرة أخرى أو الاتصال بالدعم الفني.'
+          );
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('يرجى تأكيد بريدك الإلكتروني أولاً.');
+        } else if (error.message.includes('User already registered')) {
+          setError(
+            'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أو استخدام بريد إلكتروني آخر.'
+          );
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +132,9 @@ export function SignUpForm({
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">تسجيل حساب جديد</CardTitle>
+          <CardTitle className="text-2xl cursor-pointer">
+            تسجيل حساب جديد
+          </CardTitle>
           <CardDescription>إنشاء حساب جديد</CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,6 +150,45 @@ export function SignUpForm({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="firstName">الاسم الأول</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="أحمد"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="lastName">اسم العائلة</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="محمد"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="role">نوع الحساب</Label>
+                <Select
+                  value={role}
+                  onValueChange={(value: 'admin' | 'student') => setRole(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر نوع الحساب" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">طالب</SelectItem>
+                    <SelectItem value="admin">مدير</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -133,13 +243,17 @@ export function SignUpForm({
                 </div>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full cursor-pointer"
+                disabled={isLoading}
+              >
                 {isLoading ? 'جاري إنشاء الحساب...' : 'تسجيل حساب جديد'}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               لديك حساب؟{' '}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link href="/login" className="underline underline-offset-4">
                 تسجيل الدخول
               </Link>
             </div>

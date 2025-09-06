@@ -41,7 +41,7 @@ export function LoginForm({
       });
       if (error) throw error;
       // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push('/protected');
+      router.push('/admin');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
@@ -76,7 +76,7 @@ export function LoginForm({
                 <div className="flex items-center ">
                   <Label htmlFor="password">كلمة المرور</Label>
                   <Link
-                    href="/auth/forgot-password"
+                    href="/forgot-password"
                     className="mr-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     هل نسيت كلمة المرور؟
@@ -105,15 +105,15 @@ export function LoginForm({
                 </div>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
                 {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               ليس لديك حساب؟{' '}
               <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
+                href="/sign-up"
+                className="underline underline-offset-4 cursor-pointer"
               >
                 تسجيل حساب جديد
               </Link>

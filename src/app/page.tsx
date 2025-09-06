@@ -1,11 +1,11 @@
 import BackgroundHeroImage from '@/components/background-hero-image';
 import CommonQuestions from '@/components/common-questions';
 import Footer from '@/components/footer';
+import Header from '@/components/header';
 import HeroSection from '@/components/hero-section';
 import ServicesSection from '@/components/services-section';
 import WhoWeAreSection from '@/components/who-we-are-section';
 import { Metadata } from 'next';
-
 
 export const metadata: Metadata = {
   title: {
@@ -22,13 +22,16 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main>
-      <BackgroundHeroImage />
-      <HeroSection />
-      <ServicesSection />
-      <WhoWeAreSection />
-      <CommonQuestions />
-      <Footer />
-    </main>
+    <>
+      <Header />
+      <main>
+        <BackgroundHeroImage />
+        <HeroSection />
+        <ServicesSection />
+        <WhoWeAreSection />
+        <CommonQuestions />
+        <Footer />
+      </main>
+    </>
   );
 }

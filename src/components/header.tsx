@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const links = [
   {
@@ -39,11 +40,17 @@ const links = [
   },
 ];
 
-export default function Header() {
+type HeaderType = {
+  className?: string;
+};
+
+export default function Header({ className }: HeaderType) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     setHasMounted(true);
@@ -91,7 +98,7 @@ export default function Header() {
   }`;
 
   return (
-    <header className={headerClassName}>
+    <header className={cn(headerClassName, className)}>
       <div className="px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -137,7 +144,10 @@ export default function Header() {
 
           {/* Desktop Register Button */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button className="bg-amber-500 hover:bg-amber-600 text-white px-3 sm:px-4 py-2 rounded-lg cursor-pointer text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/25">
+            <Button
+              onClick={() => router.push('/login')}
+              className="bg-amber-500 hover:bg-amber-600 text-white px-3 sm:px-4 py-2 rounded-lg cursor-pointer text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/25"
+            >
               تسجيل دخول
             </Button>
           </div>
@@ -194,6 +204,7 @@ export default function Header() {
               <Button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
+                  router.push('/login');
                 }}
                 className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg cursor-pointer mt-4 w-full transition-all duration-300 hover:scale-105 shadow-lg"
                 style={{

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Cairo, Amiri } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/header';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,10 +40,11 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${cairo.variable} ${amiri.variable} antialiased`}
+        suppressHydrationWarning
       >
         <div className="text-sm">
-          <Header />
           {children}
+          <Toaster />
         </div>
       </body>
     </html>

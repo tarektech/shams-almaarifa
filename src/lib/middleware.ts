@@ -41,20 +41,78 @@ export async function updateSession(request: NextRequest) {
   const user = data?.claims;
 
   // Define protected routes that require authentication
-  const protectedRoutes = ['/protected', '/admin'];
+  const protectedRoutes = ['/protected'];
+  const adminRoutes = ['/admin'];
+  const studentRoutes = ['/student'];
+
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
+  const isAdminRoute = adminRoutes.some((route) =>
+    request.nextUrl.pathname.startsWith(route)
+  );
+  const isStudentRoute = studentRoutes.some((route) =>
+    request.nextUrl.pathname.startsWith(route)
+  );
 
+  // Check if user is authenticated for protected routes
   if (
     !user &&
-    isProtectedRoute &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    (isProtectedRoute || isAdminRoute || isStudentRoute) &&
+    !request.nextUrl.pathname.startsWith('/login')
   ) {
-    // no user, redirect to login page only for protected routes
+    // no user, redirect to login page
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    url.pathname = '/login';
     return NextResponse.redirect(url);
+  }
+
+  // Check if user has admin privileges for admin routes
+  if (user && isAdminRoute) {
+    try {
+      // Check user metadata for admin role
+      const isAdmin =
+        user.user_metadata?.role === 'admin' ||
+        user.app_metadata?.role === 'admin' ||
+        user.app_metadata?.roles?.includes('admin');
+
+      if (!isAdmin) {
+        // User is authenticated but not an admin - redirect to unauthorized
+        const url = request.nextUrl.clone();
+        url.pathname = '/unauthorized';
+        return NextResponse.redirect(url);
+      }
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      // If there's an error checking admin status, redirect to unauthorized
+      const url = request.nextUrl.clone();
+      url.pathname = '/unauthorized';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Check if user has student privileges for student routes
+  if (user && isStudentRoute) {
+    try {
+      // Check user metadata for student role
+      const isStudent =
+        user.user_metadata?.role === 'student' ||
+        user.app_metadata?.role === 'student' ||
+        user.app_metadata?.roles?.includes('student');
+
+      if (!isStudent) {
+        // User is authenticated but not a student - redirect to unauthorized
+        const url = request.nextUrl.clone();
+        url.pathname = '/unauthorized';
+        return NextResponse.redirect(url);
+      }
+    } catch (error) {
+      console.error('Error checking student role:', error);
+      // If there's an error checking student status, redirect to unauthorized
+      const url = request.nextUrl.clone();
+      url.pathname = '/unauthorized';
+      return NextResponse.redirect(url);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
